@@ -1,0 +1,6 @@
+site.db
+static/uploads/
+static/thumbs/
+__pycache__/
+*.pyc
+.env

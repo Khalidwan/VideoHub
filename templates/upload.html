@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+رفع فيديو - VideoHub
+{% endblock %}
+
+{% block content %}
+
+<div class="formbox">
+
+    <h1>رفع فيديو</h1>
+
+    <form method="post" enctype="multipart/form-data">
+
+        <label>العنوان</label>
+
+        <input
+            type="text"
+            name="title"
+            placeholder="عنوان الفيديو"
+            required>
+
+        <label>الوصف</label>
+
+        <textarea
+            name="description"
+            rows="5"
+            placeholder="وصف الفيديو"></textarea>
+
+        <label>الفيديو</label>
+
+        <input
+            type="file"
+            name="video"
+            accept="video/*"
+            required>
+
+        <label>الصورة المصغرة</label>
+
+        <input
+            type="file"
+            name="thumbnail"
+            accept="image/*">
+
+        <button type="submit">
+            رفع الفيديو
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

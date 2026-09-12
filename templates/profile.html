@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user['username'] }} - VideoHub{% endblock %}
+
+{% block head_extra %}
+<style>
+    .profile-cta {
+        margin-bottom: 22px;
+    }
+
+    .delete-form {
+        margin-top: 10px;
+    }
+
+    .delete-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: rgba(255, 0, 51, 0.1);
+        color: #ff5a76;
+        border: 1px solid rgba(255, 0, 51, 0.25);
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.18s ease;
+    }
+
+    .delete-btn:hover {
+        background: rgba(255, 0, 51, 0.2);
+        border-color: rgba(255, 0, 51, 0.5);
+    }
+
+    .delete-btn:active {
+        transform: scale(0.97);
+    }
+
+    .empty-cta {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .video-info a h3 {
+        transition: 0.18s ease;
+    }
+
+    .video-info a:hover h3 {
+        color: var(--accent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% set is_owner = current_user and current_user['id'] == user['id'] %}
+
+<div class="page-title">
+    <h1>قناة {{ user['username'] }}</h1>
+</div>
+
+{% if is_owner %}
+<div class="profile-cta">
+    <a class="button" href="{{ url_for('upload') }}">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        رفع فيديو جديد
+    </a>
+</div>
+{% endif %}
+
+<div class="video-grid">
+
+    {% for v in videos %}
+
+    <div class="video-card">
+
+        <a href="{{ url_for('watch', video_id=v['id']) }}"
+           aria-label="{{ v['title'] }}">
+
+            <div class="video-thumbnail">
+
+                {% if v['thumbnail'] %}
+
+                <img src="{{ url_for('static', filename='thumbs/' + v['thumbnail']) }}"
+                     alt="{{ v['title'] }}">
+
+                {% else %}
+
+                <div class="no-thumbnail">
+                    <svg viewBox="0 0 24 24"
+                         width="48"
+                         height="48"
+                         aria-hidden="true">
+                        <path fill="currentColor"
+                              d="M8 5v14l11-7z"/>
+                    </svg>
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </a>
+
+        <div class="video-info">
+
+            <div class="channel-avatar">
+                {{ user['username'][0]|upper }}
+            </div>
+
+            <div>
+
+                <a href="{{ url_for('watch', video_id=v['id']) }}">
+                    <h3>{{ v['title'] }}</h3>
+                </a>
+
+                <p>{{ user['username'] }}</p>
+
+                {% if is_owner %}
+
+                <form class="delete-form"
+                      method="post"
+                      action="{{ url_for('delete_video', video_id=v['id']) }}"
+                      onsubmit="return confirm('واش متأكد بغيتي تحذف هاد الفيديو؟ ما غاديش تقدر ترجعو.');">
+
+                    <button type="submit"
+                            class="delete-btn">
+
+                        <svg viewBox="0 0 24 24"
+                             width="14"
+                             height="14"
+                             aria-hidden="true">
+                            <path fill="currentColor"
+                                  d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+
+                        <span>حذف الفيديو</span>
+
+                    </button>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty">
+
+        <div>
+            <svg viewBox="0 0 24 24"
+                 width="60"
+                 height="60"
+                 aria-hidden="true"
+                 style="margin: 0 auto;">
+                <path fill="currentColor"
+                      d="M4 6h16v10H4V6zm-2-2v14h18v2H2a2 2 0 0 1-2-2V4h2zm12 4v4l-6 3V8l6 3z"/>
+            </svg>
+        </div>
+
+        <h2>ما رفع حتى فيديو</h2>
+
+        <p>
+            {% if is_owner %}
+                ابدأ برفع أول فيديو ليك.
+            {% else %}
+                هاد المستخدم ما رفع حتى فيديو.
+            {% endif %}
+        </p>
+
+        {% if is_owner %}
+
+        <div class="empty-cta">
+            <a class="button" href="{{ url_for('upload') }}">
+                <svg viewBox="0 0 24 24"
+                     width="16"
+                     height="16"
+                     aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                رفع فيديو جديد
+            </a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

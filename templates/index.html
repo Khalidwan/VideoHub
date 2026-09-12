@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}
+VideoHub - الرئيسية
+{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+
+    <h1>
+        أحدث الفيديوهات
+    </h1>
+
+</div>
+
+<div class="video-grid">
+
+    {% for video in videos %}
+
+    <a class="video-card"
+       href="{{ url_for('watch', video_id=video['id']) }}">
+
+        <div class="video-thumbnail">
+
+            {% if video['thumbnail'] %}
+
+                <img
+                    src="{{ url_for(
+                        'static',
+                        filename='thumbs/' + video['thumbnail']
+                    ) }}"
+                    alt="{{ video['title'] }}">
+
+            {% else %}
+
+                <div class="no-thumbnail">
+                    ▶
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="video-info">
+
+            <div class="channel-avatar">
+                {{ video['username'][0]|upper }}
+            </div>
+
+            <div>
+
+                <h3>
+                    {{ video['title'] }}
+                </h3>
+
+                <p>
+                    {{ video['username'] }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </a>
+
+    {% else %}
+
+        <div class="empty">
+
+            <div>🎬</div>
+
+            <h2>
+                ما كاين حتى فيديو دابا
+            </h2>
+
+            <p>
+                أول فيديو غادي يظهر هنا.
+            </p>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

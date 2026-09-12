@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ video['title'] }} - VideoHub
+{% endblock %}
+
+{% block content %}
+
+<div class="watch">
+
+    <video
+        controls
+        {% if video['thumbnail'] %}
+        poster="{{ url_for(
+            'static',
+            filename='thumbs/' + video['thumbnail']
+        ) }}"
+        {% endif %}
+    >
+
+        <source
+            src="{{ url_for(
+                'static',
+                filename='uploads/' + video['filename']
+            ) }}">
+
+        المتصفح ديالك ما كيدعمش تشغيل الفيديو.
+
+    </video>
+
+    <h1>
+        {{ video['title'] }}
+    </h1>
+
+    <p>
+        بواسطة
+        <a href="{{ url_for(
+            'profile',
+            user_id=video['user_id']
+        ) }}">
+            {{ video['username'] }}
+        </a>
+    </p>
+
+    <p class="description">
+        {{ video['description'] }}
+    </p>
+
+</div>
+
+{% endblock %}
