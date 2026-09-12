@@ -494,12 +494,11 @@ def delete_video(video_id):
             user_id=user["id"]
         )
     )
-
+init_db()
 
 if __name__ == "__main__":
 
-    init_db()
-
+    0
     app.run(
         host="0.0.0.0",
         port=8080,
