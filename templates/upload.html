@@ -2,188 +2,785 @@
 
 {% block title %}إنشاء فيديو - JENBIR{% endblock %}
 
+{% block head_extra %}
+<style>
+
+    [hidden] {
+        display: none !important;
+    }
+
+    .create-video-page {
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+    .create-video-page h1 {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 800;
+        margin: 0 0 20px;
+        letter-spacing: -0.3px;
+    }
+
+    .camera-stage {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 9 / 16;
+        max-height: 68vh;
+        background: #000000;
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin: 0 auto 18px;
+        display: grid;
+        place-items: center;
+    }
+
+    .camera-stage > video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .camera-placeholder {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        gap: 14px;
+        padding: 24px;
+        background: linear-gradient(135deg, #141414, #1f1f1f);
+        color: var(--text-mute);
+    }
+
+    .camera-placeholder p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dim);
+        max-width: 240px;
+        line-height: 1.6;
+    }
+
+    .camera-placeholder svg {
+        opacity: 0.55;
+    }
+
+    .start-camera-inline-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--trans);
+        box-shadow: 0 4px 14px rgba(255, 0, 51, 0.28);
+        margin-top: 4px;
+    }
+
+    .start-camera-inline-btn:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 6px 20px rgba(255, 0, 51, 0.42);
+    }
+
+    .start-camera-inline-btn:active {
+        transform: scale(0.97);
+    }
+
+    .switch-camera-btn {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: grid;
+        place-items: center;
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+        transition: var(--trans);
+        z-index: 3;
+    }
+
+    .switch-camera-btn:hover {
+        background: rgba(0, 0, 0, 0.75);
+        transform: rotate(180deg);
+    }
+
+    .countdown {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 96px;
+        font-weight: 800;
+        color: #ffffff;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        letter-spacing: -3px;
+        z-index: 4;
+    }
+
+    .countdown.active {
+        opacity: 1;
+    }
+
+    .record-controls {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0 18px;
+    }
+
+    .record-btn {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: transparent;
+        border: 4px solid rgba(255, 255, 255, 0.85);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        cursor: pointer;
+        transition: var(--trans);
+    }
+
+    .record-btn:not(:disabled):hover {
+        transform: scale(1.05);
+    }
+
+    .record-btn:not(:disabled):active {
+        transform: scale(0.95);
+    }
+
+    .record-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+
+    .record-btn-inner {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.3);
+        transition: var(--trans);
+        display: block;
+    }
+
+    .record-btn:not(:disabled):hover .record-btn-inner {
+        background: var(--accent-hover);
+    }
+
+    .record-btn.recording .record-btn-inner {
+        border-radius: 10px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .preview-wrap {
+        display: grid;
+        gap: 12px;
+    }
+
+    .preview-video {
+        width: 100%;
+        aspect-ratio: 9 / 16;
+        max-height: 60vh;
+        background: #000000;
+        border-radius: var(--radius);
+        display: block;
+        margin: 0 auto;
+    }
+
+    .re-record-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 18px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-elev-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--trans);
+        width: 100%;
+    }
+
+    .re-record-btn:hover {
+        background: var(--bg-hover);
+        border-color: #3a3a3a;
+    }
+
+    .publish-form {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+    }
+
+    .publish-form label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dim);
+        margin-bottom: -6px;
+    }
+
+    .publish-form input[type="text"],
+    .publish-form select {
+        width: 100%;
+        padding: 13px 16px;
+        background: var(--bg-elev-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 15px;
+        outline: none;
+        transition: var(--trans);
+    }
+
+    .publish-form input[type="text"]:focus,
+    .publish-form select:focus {
+        border-color: var(--accent);
+        background: var(--bg-elev);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .publish-form input[type="text"]::placeholder {
+        color: var(--text-mute);
+    }
+
+    .publish-form select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23aaaaaa'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 16px center;
+        padding-left: 42px;
+        cursor: pointer;
+    }
+
+    .publish-form button[type="submit"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 20px;
+        background: var(--accent);
+        color: #ffffff;
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--trans);
+        box-shadow: 0 6px 18px rgba(255, 0, 51, 0.3);
+        margin-top: 4px;
+    }
+
+    .publish-form button[type="submit"]:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 8px 24px rgba(255, 0, 51, 0.45);
+    }
+
+    .publish-form button[type="submit"]:active {
+        transform: scale(0.98);
+    }
+
+    @media (max-width: 480px) {
+        .countdown {
+            font-size: 72px;
+        }
+        .record-btn {
+            width: 68px;
+            height: 68px;
+        }
+        .record-btn-inner {
+            width: 52px;
+            height: 52px;
+        }
+    }
+
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="create-video-page">
 
-    <h1>🎥 إنشاء فيديو</h1>
+    <h1>إنشاء فيديو</h1>
 
-    <div class="camera-box">
+    <div class="camera-stage" id="cameraStage">
 
-        <video
-            id="camera"
-            autoplay
-            playsinline
-            muted>
-        </video>
+        <video id="camera"
+               autoplay
+               playsinline
+               muted></video>
 
-        <div id="countdown" class="countdown"></div>
+        <div class="camera-placeholder" id="cameraPlaceholder">
 
-        <div class="camera-controls">
-            <button type="button" id="startCamera">
-                📷 فتح الكاميرا
+            <svg viewBox="0 0 24 24"
+                 width="56"
+                 height="56"
+                 aria-hidden="true">
+                <path fill="currentColor"
+                      d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+
+            <p>سجّل فيديو مدته 10 ثواني مباشرة من كاميرا الهاتف</p>
+
+            <button type="button"
+                    class="start-camera-inline-btn"
+                    id="startCameraBtn">
+
+                <svg viewBox="0 0 24 24"
+                     width="16"
+                     height="16"
+                     aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/>
+                </svg>
+
+                <span>فتح الكاميرا</span>
+
             </button>
 
-            <button
-                type="button"
-                id="recordButton"
-                disabled>
-                🔴 تسجيل 10 ثواني
-            </button>
         </div>
+
+        <button type="button"
+                class="switch-camera-btn"
+                id="switchCameraBtn"
+                hidden
+                aria-label="تبديل الكاميرا">
+
+            <svg viewBox="0 0 24 24"
+                 width="22"
+                 height="22"
+                 aria-hidden="true">
+                <path fill="currentColor"
+                      d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5 0 1.64-.8 3.09-2 4l1.42 1.42A7 7 0 0 0 12 6zm-5 5c0-1.64.8-3.09 2-4L7.58 5.58A7 7 0 0 0 12 18v3l4-4-4-4v3c-2.76 0-5-2.24-5-5z"/>
+            </svg>
+
+        </button>
+
+        <div class="countdown" id="countdown"></div>
 
     </div>
 
-    <video
-        id="preview"
-        controls
-        playsinline
-        style="display:none;">
-    </video>
+    <div class="record-controls" id="recordControls">
 
-    <form
-        id="publishForm"
-        method="POST"
-        enctype="multipart/form-data"
-        style="display:none;">
+        <button type="button"
+                class="record-btn"
+                id="recordBtn"
+                disabled
+                aria-label="تسجيل">
 
-        <input
-            type="text"
-            name="title"
-            maxlength="50"
-            placeholder="شنو بغيتي تقول؟ (اختياري)">
+            <span class="record-btn-inner"></span>
 
-        <input
-            type="file"
-            name="video"
-            id="videoFile"
-            hidden>
-
-        <select name="visibility">
-            <option value="public">🌍 Public</option>
-            <option value="followers">👥 Followers</option>
-        </select>
-
-        <button type="submit">
-            🚀 نشر الفيديو
         </button>
 
-    </form>
+    </div>
+
+    <div class="preview-wrap" id="previewWrap" hidden>
+
+        <video id="preview"
+               class="preview-video"
+               controls
+               playsinline></video>
+
+        <button type="button"
+                class="re-record-btn"
+                id="reRecordBtn">
+
+            <svg viewBox="0 0 24 24"
+                 width="18"
+                 height="18"
+                 aria-hidden="true">
+                <path fill="currentColor"
+                      d="M17.65 6.35A8 8 0 1 0 19.73 14h-2.08A6 6 0 1 1 12 6a5.9 5.9 0 0 1 4.22 1.78L13 11h7V4z"/>
+            </svg>
+
+            <span>إعادة التسجيل</span>
+
+        </button>
+
+        <form id="publishForm"
+              class="publish-form"
+              method="POST"
+              enctype="multipart/form-data">
+
+            <input type="file"
+                   name="video"
+                   id="videoFile"
+                   hidden>
+
+            <label for="captionInput">الوصف (اختياري)</label>
+
+            <input type="text"
+                   id="captionInput"
+                   name="title"
+                   maxlength="50"
+                   placeholder="شنو بغيتي تقول؟"
+                   autocomplete="off">
+
+            <label for="visibilitySelect">الظهور</label>
+
+            <select id="visibilitySelect" name="visibility">
+                <option value="public">Public — للجميع</option>
+                <option value="followers">Followers — للمتابعين</option>
+            </select>
+
+            <button type="submit">
+
+                <svg viewBox="0 0 24 24"
+                     width="18"
+                     height="18"
+                     aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                </svg>
+
+                <span>نشر الفيديو</span>
+
+            </button>
+
+        </form>
+
+    </div>
 
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
 
-const camera = document.getElementById("camera");
-const preview = document.getElementById("preview");
-const startCamera = document.getElementById("startCamera");
-const recordButton = document.getElementById("recordButton");
-const countdown = document.getElementById("countdown");
+(function () {
 
-let stream = null;
-let recorder = null;
-let chunks = [];
+    var camera = document.getElementById("camera");
+    var cameraStage = document.getElementById("cameraStage");
+    var cameraPlaceholder = document.getElementById("cameraPlaceholder");
+    var startCameraBtn = document.getElementById("startCameraBtn");
+    var switchCameraBtn = document.getElementById("switchCameraBtn");
+    var countdown = document.getElementById("countdown");
+    var recordControls = document.getElementById("recordControls");
+    var recordBtn = document.getElementById("recordBtn");
+    var previewWrap = document.getElementById("previewWrap");
+    var preview = document.getElementById("preview");
+    var reRecordBtn = document.getElementById("reRecordBtn");
+    var publishForm = document.getElementById("publishForm");
+    var videoFileInput = document.getElementById("videoFile");
 
-startCamera.addEventListener("click", async () => {
+    var stream = null;
+    var recorder = null;
+    var chunks = [];
+    var countdownTimer = null;
+    var currentFacing = "user";
+    var isRecording = false;
 
-    try {
-
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: "user"
-            },
-            audio: true
-        });
-
-        camera.srcObject = stream;
-
-        recordButton.disabled = false;
-
-        startCamera.disabled = true;
-
-    } catch (error) {
-
-        alert("خاصك تسمح للكاميرا والميكروفون.");
-
-        console.error(error);
+    function pickMimeType() {
+        if (typeof MediaRecorder === "undefined" ||
+            typeof MediaRecorder.isTypeSupported !== "function") {
+            return "";
+        }
+        var candidates = [
+            "video/webm;codecs=vp9,opus",
+            "video/webm;codecs=vp8,opus",
+            "video/webm",
+            "video/mp4"
+        ];
+        for (var i = 0; i < candidates.length; i++) {
+            if (MediaRecorder.isTypeSupported(candidates[i])) {
+                return candidates[i];
+            }
+        }
+        return "";
     }
 
-});
+    function stopStream() {
+        if (stream) {
+            stream.getTracks().forEach(function (track) {
+                track.stop();
+            });
+            stream = null;
+        }
+    }
 
+    async function openCamera(facing) {
 
-recordButton.addEventListener("click", () => {
+        stopStream();
 
-    chunks = [];
+        try {
 
-    recorder = new MediaRecorder(stream);
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: facing,
+                    width: { ideal: 720 },
+                    height: { ideal: 1280 }
+                },
+                audio: true
+            });
 
-    recorder.ondataavailable = event => {
+            camera.srcObject = stream;
 
-        if (event.data.size > 0) {
-            chunks.push(event.data);
+            cameraPlaceholder.hidden = true;
+            switchCameraBtn.hidden = false;
+            recordBtn.disabled = false;
+
+            return true;
+
+        } catch (error) {
+
+            console.error(error);
+
+            cameraPlaceholder.hidden = false;
+            switchCameraBtn.hidden = true;
+            recordBtn.disabled = true;
+
+            return false;
+
         }
 
-    };
+    }
 
-    recorder.onstop = () => {
+    async function handleStartCamera() {
 
-        const blob = new Blob(
-            chunks,
-            { type: recorder.mimeType }
-        );
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("متصفحك ما كيدعمش الوصول للكاميرا.");
+            return;
+        }
 
-        const file = new File(
-            [blob],
-            "jenbir-video.webm",
-            { type: blob.type }
-        );
+        if (typeof MediaRecorder === "undefined") {
+            alert("متصفحك ما كيدعمش التسجيل.");
+            return;
+        }
 
-        const dataTransfer = new DataTransfer();
+        var ok = await openCamera(currentFacing);
 
-        dataTransfer.items.add(file);
+        if (!ok) {
+            alert("تعذر الوصول للكاميرا. تأكد من السماح بالوصول للمتصفح.");
+        }
 
-        document.getElementById("videoFile").files =
-            dataTransfer.files;
+    }
 
-        preview.src = URL.createObjectURL(blob);
+    async function handleSwitchCamera() {
 
-        preview.style.display = "block";
+        if (isRecording) {
+            return;
+        }
 
-        document.getElementById("publishForm").style.display =
-            "block";
+        currentFacing = currentFacing === "user" ? "environment" : "user";
 
-    };
+        await openCamera(currentFacing);
 
-    recorder.start();
+    }
 
-    recordButton.disabled = true;
+    function stopRecording() {
 
-    let seconds = 10;
-
-    countdown.textContent = seconds;
-
-    const timer = setInterval(() => {
-
-        seconds--;
-
-        countdown.textContent = seconds;
-
-        if (seconds <= 0) {
-
-            clearInterval(timer);
-
-            countdown.textContent = "";
-
+        if (recorder && recorder.state !== "inactive") {
             recorder.stop();
-
-            recordButton.disabled = false;
-
         }
 
-    }, 1000);
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
 
-});
+        countdown.classList.remove("active");
+        countdown.textContent = "";
+        isRecording = false;
+        recordBtn.classList.remove("recording");
+
+    }
+
+    function startRecording() {
+
+        if (!stream || isRecording) {
+            return;
+        }
+
+        if (typeof MediaRecorder === "undefined") {
+            return;
+        }
+
+        chunks = [];
+
+        var mimeType = pickMimeType();
+
+        try {
+            recorder = mimeType
+                ? new MediaRecorder(stream, { mimeType: mimeType })
+                : new MediaRecorder(stream);
+        } catch (error) {
+            console.error(error);
+            alert("تعذر بدء التسجيل.");
+            return;
+        }
+
+        recorder.ondataavailable = function (event) {
+            if (event.data && event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        recorder.onstop = function () {
+
+            var actualType = recorder.mimeType || mimeType || "video/webm";
+
+            var blob = new Blob(chunks, { type: actualType });
+
+            var extension = actualType.indexOf("mp4") !== -1 ? "mp4" : "webm";
+
+            var file = new File(
+                [blob],
+                "jenbir-video." + extension,
+                { type: actualType }
+            );
+
+            var dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            videoFileInput.files = dataTransfer.files;
+
+            preview.src = URL.createObjectURL(blob);
+
+            cameraStage.hidden = true;
+            recordControls.hidden = true;
+            previewWrap.hidden = false;
+
+            stopStream();
+
+        };
+
+        recorder.start();
+        isRecording = true;
+        recordBtn.classList.add("recording");
+        recordBtn.disabled = true;
+        switchCameraBtn.hidden = true;
+
+        countdown.classList.add("active");
+
+        var seconds = 10;
+        countdown.textContent = String(seconds);
+
+        countdownTimer = setInterval(function () {
+
+            seconds = seconds - 1;
+
+            if (seconds > 0) {
+                countdown.textContent = String(seconds);
+            } else {
+                countdown.textContent = "0";
+            }
+
+            if (seconds <= 0) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+                stopRecording();
+            }
+
+        }, 1000);
+
+    }
+
+    function resetToCamera() {
+
+        if (preview) {
+            preview.pause();
+            preview.removeAttribute("src");
+            preview.load();
+        }
+
+        previewWrap.hidden = true;
+        publishForm.reset();
+        videoFileInput.value = "";
+
+        cameraStage.hidden = false;
+        recordControls.hidden = false;
+
+        recordBtn.disabled = true;
+        recordBtn.classList.remove("recording");
+
+        countdown.classList.remove("active");
+        countdown.textContent = "";
+
+        chunks = [];
+        recorder = null;
+        isRecording = false;
+
+        cameraPlaceholder.hidden = false;
+        switchCameraBtn.hidden = true;
+
+        openCamera(currentFacing);
+
+    }
+
+    if (startCameraBtn) {
+        startCameraBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            handleStartCamera();
+        });
+    }
+
+    if (switchCameraBtn) {
+        switchCameraBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            handleSwitchCamera();
+        });
+    }
+
+    if (recordBtn) {
+        recordBtn.addEventListener("click", function () {
+            startRecording();
+        });
+    }
+
+    if (reRecordBtn) {
+        reRecordBtn.addEventListener("click", function () {
+            resetToCamera();
+        });
+    }
+
+    if (publishForm) {
+        publishForm.addEventListener("submit", function (event) {
+
+            if (!videoFileInput.files || videoFileInput.files.length === 0) {
+                event.preventDefault();
+                alert("ما كاينش فيديو مسجّل.");
+                return;
+            }
+
+        });
+    }
+
+    window.addEventListener("beforeunload", function () {
+
+        stopStream();
+
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
+
+    });
+
+})();
 
 </script>
-
 {% endblock %}
