@@ -372,7 +372,36 @@ def upload():
         return redirect(url_for("home"))
 
     return render_template("upload.html")
+@app.route("/video/<int:video_id>/replies")
+def get_replies(video_id):
+    con = db()
 
+    replies = con.execute(
+        """
+        SELECT replies.*, users.username
+        FROM replies
+        JOIN users ON users.id = replies.user_id
+        WHERE replies.original_video_id=%s
+          AND replies.status='published'
+          AND replies.expires_at > CURRENT_TIMESTAMP
+        ORDER BY replies.created_at ASC
+        """,
+        (video_id,)
+    ).fetchall()
+
+    con.close()
+
+    return {
+        "replies": [
+            {
+                "id": r["id"],
+                "user_id": r["user_id"],
+                "username": r["username"],
+                "filename": r["filename"]
+            }
+            for r in replies
+        ]
+    }
 
 @app.route("/video/<int:video_id>")
 def watch(video_id):
