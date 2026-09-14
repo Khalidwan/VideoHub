@@ -22,24 +22,32 @@
         letter-spacing: -0.3px;
     }
 
+    /*
+     * Camera stage:
+     * الحجم ثابت حتى لا يتحرك الـ layout عند تشغيل الكاميرا.
+     */
     .camera-stage {
         position: relative;
         width: 100%;
         aspect-ratio: 9 / 16;
         max-height: 68vh;
+        min-height: 420px;
         background: #000000;
         border-radius: var(--radius);
         overflow: hidden;
         margin: 0 auto 18px;
-        display: grid;
-        place-items: center;
+        display: block;
+        contain: layout paint;
     }
 
     .camera-stage > video {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
+        background: #000000;
     }
 
     .camera-placeholder {
@@ -52,6 +60,7 @@
         padding: 24px;
         background: linear-gradient(135deg, #141414, #1f1f1f);
         color: var(--text-mute);
+        z-index: 2;
     }
 
     .camera-placeholder p {
@@ -59,7 +68,7 @@
         font-size: 13px;
         font-weight: 600;
         color: var(--text-dim);
-        max-width: 240px;
+        max-width: 260px;
         line-height: 1.6;
     }
 
@@ -67,30 +76,19 @@
         opacity: 0.55;
     }
 
-    .start-camera-inline-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 999px;
-        background: var(--accent);
+    .camera-error {
         color: #ffffff;
+    }
+
+    .camera-error svg {
+        opacity: 0.7;
+    }
+
+    .camera-error-text {
+        color: var(--text-dim);
         font-size: 13px;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        transition: var(--trans);
-        box-shadow: 0 4px 14px rgba(255, 0, 51, 0.28);
-        margin-top: 4px;
-    }
-
-    .start-camera-inline-btn:hover {
-        background: var(--accent-hover);
-        box-shadow: 0 6px 20px rgba(255, 0, 51, 0.42);
-    }
-
-    .start-camera-inline-btn:active {
-        transform: scale(0.97);
+        line-height: 1.6;
+        max-width: 270px;
     }
 
     .switch-camera-btn {
@@ -117,6 +115,10 @@
         transform: rotate(180deg);
     }
 
+    .switch-camera-btn:active {
+        transform: scale(0.94);
+    }
+
     .countdown {
         position: absolute;
         inset: 0;
@@ -139,15 +141,23 @@
         opacity: 1;
     }
 
+    /*
+     * مساحة ثابتة لزر التسجيل.
+     * لن يتغير مكانه عند ظهور/اختفاء عناصر الكاميرا.
+     */
     .record-controls {
+        height: 102px;
         display: flex;
         justify-content: center;
+        align-items: flex-start;
         padding: 8px 0 18px;
+        box-sizing: border-box;
     }
 
     .record-btn {
         width: 76px;
         height: 76px;
+        flex: 0 0 76px;
         border-radius: 50%;
         background: transparent;
         border: 4px solid rgba(255, 255, 255, 0.85);
@@ -155,7 +165,7 @@
         place-items: center;
         padding: 0;
         cursor: pointer;
-        transition: var(--trans);
+        transition: transform 0.18s ease, opacity 0.18s ease;
     }
 
     .record-btn:not(:disabled):hover {
@@ -176,9 +186,15 @@
         height: 58px;
         border-radius: 50%;
         background: var(--accent);
-        box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.3);
-        transition: var(--trans);
+        box-shadow:
+            0 0 0 2px rgba(255, 0, 51, 0.3),
+            0 0 18px rgba(255, 0, 51, 0.18);
+        transition: transform 0.18s ease, background 0.18s ease;
         display: block;
+    }
+
+    .record-btn:not(:disabled) .record-btn-inner {
+        background: var(--accent);
     }
 
     .record-btn:not(:disabled):hover .record-btn-inner {
@@ -253,6 +269,7 @@
         font-size: 15px;
         outline: none;
         transition: var(--trans);
+        box-sizing: border-box;
     }
 
     .publish-form input[type="text"]:focus,
@@ -305,16 +322,29 @@
     }
 
     @media (max-width: 480px) {
+
+        .camera-stage {
+            min-height: 360px;
+            max-height: 66vh;
+        }
+
         .countdown {
             font-size: 72px;
         }
+
         .record-btn {
             width: 68px;
             height: 68px;
+            flex-basis: 68px;
         }
+
         .record-btn-inner {
             width: 52px;
             height: 52px;
+        }
+
+        .record-controls {
+            height: 94px;
         }
     }
 
@@ -334,6 +364,10 @@
                playsinline
                muted></video>
 
+        <!--
+            نفس مساحة الـplaceholder دائماً.
+            لا يوجد زر "فتح الكاميرا".
+        -->
         <div class="camera-placeholder" id="cameraPlaceholder">
 
             <svg viewBox="0 0 24 24"
@@ -344,23 +378,9 @@
                       d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/>
             </svg>
 
-            <p>سجّل فيديو مدته 10 ثواني مباشرة من كاميرا الهاتف</p>
-
-            <button type="button"
-                    class="start-camera-inline-btn"
-                    id="startCameraBtn">
-
-                <svg viewBox="0 0 24 24"
-                     width="16"
-                     height="16"
-                     aria-hidden="true">
-                    <path fill="currentColor"
-                          d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/>
-                </svg>
-
-                <span>فتح الكاميرا</span>
-
-            </button>
+            <p id="cameraStatus">
+                جاري تشغيل الكاميرا...
+            </p>
 
         </div>
 
@@ -454,7 +474,7 @@
                      height="18"
                      aria-hidden="true">
                     <path fill="currentColor"
-                          d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                          d="M9 16h6v-6h4l-7-7-7 7h-4v6zm-4 2h14v2H5v-2z"/>
                 </svg>
 
                 <span>نشر الفيديو</span>
@@ -477,7 +497,7 @@
     var camera = document.getElementById("camera");
     var cameraStage = document.getElementById("cameraStage");
     var cameraPlaceholder = document.getElementById("cameraPlaceholder");
-    var startCameraBtn = document.getElementById("startCameraBtn");
+    var cameraStatus = document.getElementById("cameraStatus");
     var switchCameraBtn = document.getElementById("switchCameraBtn");
     var countdown = document.getElementById("countdown");
     var recordControls = document.getElementById("recordControls");
@@ -496,86 +516,138 @@
     var isRecording = false;
 
     function pickMimeType() {
+
         if (typeof MediaRecorder === "undefined" ||
             typeof MediaRecorder.isTypeSupported !== "function") {
             return "";
         }
+
         var candidates = [
             "video/webm;codecs=vp9,opus",
             "video/webm;codecs=vp8,opus",
             "video/webm",
             "video/mp4"
         ];
+
         for (var i = 0; i < candidates.length; i++) {
+
             if (MediaRecorder.isTypeSupported(candidates[i])) {
                 return candidates[i];
             }
+
         }
+
         return "";
     }
 
     function stopStream() {
+
         if (stream) {
+
             stream.getTracks().forEach(function (track) {
                 track.stop();
             });
+
             stream = null;
         }
+
+    }
+
+    function showCameraError(message) {
+
+        cameraPlaceholder.hidden = false;
+        switchCameraBtn.hidden = true;
+        recordBtn.disabled = true;
+
+        cameraStatus.textContent = message;
+
     }
 
     async function openCamera(facing) {
 
+        if (!navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia) {
+
+            showCameraError(
+                "المتصفح ديالك ما كيدعمش الوصول للكاميرا."
+            );
+
+            return false;
+        }
+
         stopStream();
+
+        recordBtn.disabled = true;
 
         try {
 
             stream = await navigator.mediaDevices.getUserMedia({
                 video: {
-                    facingMode: facing,
-                    width: { ideal: 720 },
-                    height: { ideal: 1280 }
+                    facingMode: {
+                        ideal: facing
+                    },
+                    width: {
+                        ideal: 720
+                    },
+                    height: {
+                        ideal: 1280
+                    }
                 },
                 audio: true
             });
 
             camera.srcObject = stream;
 
+            /*
+             * نخلي الـvideo جاهز قبل تفعيل زر التسجيل.
+             */
+            try {
+                await camera.play();
+            } catch (playError) {
+                console.warn("Camera play warning:", playError);
+            }
+
             cameraPlaceholder.hidden = true;
             switchCameraBtn.hidden = false;
+
+            /*
+             * هنا بالضبط كيتفعل الزر الأحمر.
+             */
             recordBtn.disabled = false;
 
             return true;
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Camera error:", error);
 
-            cameraPlaceholder.hidden = false;
-            switchCameraBtn.hidden = true;
-            recordBtn.disabled = true;
+            if (error && error.name === "NotAllowedError") {
+
+                showCameraError(
+                    "خاصك تسمح للمتصفح باستعمال الكاميرا والمايك."
+                );
+
+            } else if (error && error.name === "NotFoundError") {
+
+                showCameraError(
+                    "ما تلقاتش كاميرا أو مايكروفون متاح."
+                );
+
+            } else if (error && error.name === "NotReadableError") {
+
+                showCameraError(
+                    "الكاميرا مستعملة من تطبيق آخر."
+                );
+
+            } else {
+
+                showCameraError(
+                    "تعذر تشغيل الكاميرا. حاول مرة أخرى."
+                );
+
+            }
 
             return false;
-
-        }
-
-    }
-
-    async function handleStartCamera() {
-
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("متصفحك ما كيدعمش الوصول للكاميرا.");
-            return;
-        }
-
-        if (typeof MediaRecorder === "undefined") {
-            alert("متصفحك ما كيدعمش التسجيل.");
-            return;
-        }
-
-        var ok = await openCamera(currentFacing);
-
-        if (!ok) {
-            alert("تعذر الوصول للكاميرا. تأكد من السماح بالوصول للمتصفح.");
         }
 
     }
@@ -586,7 +658,10 @@
             return;
         }
 
-        currentFacing = currentFacing === "user" ? "environment" : "user";
+        currentFacing =
+            currentFacing === "user"
+                ? "environment"
+                : "user";
 
         await openCamera(currentFacing);
 
@@ -594,17 +669,21 @@
 
     function stopRecording() {
 
-        if (recorder && recorder.state !== "inactive") {
+        if (recorder &&
+            recorder.state !== "inactive") {
+
             recorder.stop();
         }
 
         if (countdownTimer) {
+
             clearInterval(countdownTimer);
             countdownTimer = null;
         }
 
         countdown.classList.remove("active");
         countdown.textContent = "";
+
         isRecording = false;
         recordBtn.classList.remove("recording");
 
@@ -617,6 +696,8 @@
         }
 
         if (typeof MediaRecorder === "undefined") {
+
+            alert("المتصفح ديالك ما كيدعمش التسجيل.");
             return;
         }
 
@@ -625,41 +706,99 @@
         var mimeType = pickMimeType();
 
         try {
+
             recorder = mimeType
-                ? new MediaRecorder(stream, { mimeType: mimeType })
+                ? new MediaRecorder(
+                    stream,
+                    { mimeType: mimeType }
+                )
                 : new MediaRecorder(stream);
+
         } catch (error) {
+
             console.error(error);
             alert("تعذر بدء التسجيل.");
             return;
         }
 
         recorder.ondataavailable = function (event) {
-            if (event.data && event.data.size > 0) {
+
+            if (event.data &&
+                event.data.size > 0) {
+
                 chunks.push(event.data);
             }
+
+        };
+
+        recorder.onerror = function (event) {
+
+            console.error("Recorder error:", event);
+
+            stopRecording();
+
+            alert("وقع خطأ أثناء تسجيل الفيديو.");
+
         };
 
         recorder.onstop = function () {
 
-            var actualType = recorder.mimeType || mimeType || "video/webm";
+            var actualType =
+                recorder.mimeType ||
+                mimeType ||
+                "video/webm";
 
-            var blob = new Blob(chunks, { type: actualType });
+            var blob = new Blob(
+                chunks,
+                { type: actualType }
+            );
 
-            var extension = actualType.indexOf("mp4") !== -1 ? "mp4" : "webm";
+            var extension =
+                actualType.indexOf("mp4") !== -1
+                    ? "mp4"
+                    : "webm";
 
             var file = new File(
                 [blob],
                 "jenbir-video." + extension,
-                { type: actualType }
+                {
+                    type: actualType
+                }
             );
 
-            var dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            videoFileInput.files = dataTransfer.files;
+            /*
+             * DataTransfer متوفر في المتصفحات الحديثة.
+             */
+            try {
 
-            preview.src = URL.createObjectURL(blob);
+                var dataTransfer = new DataTransfer();
 
+                dataTransfer.items.add(file);
+
+                videoFileInput.files =
+                    dataTransfer.files;
+
+            } catch (error) {
+
+                console.error(
+                    "DataTransfer error:",
+                    error
+                );
+
+                alert(
+                    "تعذر تجهيز الفيديو للنشر."
+                );
+
+                return;
+            }
+
+            preview.src =
+                URL.createObjectURL(blob);
+
+            /*
+             * نخلي الـpreview ياخذ مكان الكاميرا
+             * بدون تحريك غير ضروري للعناصر.
+             */
             cameraStage.hidden = true;
             recordControls.hidden = true;
             previewWrap.hidden = false;
@@ -668,47 +807,78 @@
 
         };
 
-        recorder.start();
+        try {
+
+            recorder.start();
+
+        } catch (error) {
+
+            console.error(error);
+            alert("تعذر بدء التسجيل.");
+            return;
+        }
+
         isRecording = true;
+
         recordBtn.classList.add("recording");
         recordBtn.disabled = true;
+
         switchCameraBtn.hidden = true;
 
         countdown.classList.add("active");
 
         var seconds = 10;
-        countdown.textContent = String(seconds);
 
-        countdownTimer = setInterval(function () {
+        countdown.textContent =
+            String(seconds);
 
-            seconds = seconds - 1;
+        countdownTimer =
+            setInterval(function () {
 
-            if (seconds > 0) {
-                countdown.textContent = String(seconds);
-            } else {
-                countdown.textContent = "0";
-            }
+                seconds--;
 
-            if (seconds <= 0) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-                stopRecording();
-            }
+                if (seconds > 0) {
 
-        }, 1000);
+                    countdown.textContent =
+                        String(seconds);
+
+                } else {
+
+                    countdown.textContent = "0";
+
+                    clearInterval(
+                        countdownTimer
+                    );
+
+                    countdownTimer = null;
+
+                    stopRecording();
+                }
+
+            }, 1000);
 
     }
 
-    function resetToCamera() {
+    async function resetToCamera() {
 
         if (preview) {
+
             preview.pause();
+
+            if (preview.src) {
+                URL.revokeObjectURL(
+                    preview.src
+                );
+            }
+
             preview.removeAttribute("src");
             preview.load();
         }
 
         previewWrap.hidden = true;
+
         publishForm.reset();
+
         videoFileInput.value = "";
 
         cameraStage.hidden = false;
@@ -725,60 +895,119 @@
         isRecording = false;
 
         cameraPlaceholder.hidden = false;
+
+        cameraStatus.textContent =
+            "جاري تشغيل الكاميرا...";
+
         switchCameraBtn.hidden = true;
 
-        openCamera(currentFacing);
+        await openCamera(currentFacing);
 
     }
 
-    if (startCameraBtn) {
-        startCameraBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            handleStartCamera();
-        });
+    /*
+     * لا يوجد زر فتح الكاميرا.
+     * الكاميرا تبدأ تلقائياً عند فتح الصفحة.
+     */
+    async function initializeCamera() {
+
+        if (typeof MediaRecorder === "undefined") {
+
+            showCameraError(
+                "المتصفح ديالك ما كيدعمش تسجيل الفيديو."
+            );
+
+            return;
+        }
+
+        await openCamera(currentFacing);
+
     }
 
     if (switchCameraBtn) {
-        switchCameraBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            handleSwitchCamera();
-        });
+
+        switchCameraBtn.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                handleSwitchCamera();
+
+            }
+        );
+
     }
 
     if (recordBtn) {
-        recordBtn.addEventListener("click", function () {
-            startRecording();
-        });
+
+        recordBtn.addEventListener(
+            "click",
+            function () {
+
+                startRecording();
+
+            }
+        );
+
     }
 
     if (reRecordBtn) {
-        reRecordBtn.addEventListener("click", function () {
-            resetToCamera();
-        });
+
+        reRecordBtn.addEventListener(
+            "click",
+            function () {
+
+                resetToCamera();
+
+            }
+        );
+
     }
 
     if (publishForm) {
-        publishForm.addEventListener("submit", function (event) {
 
-            if (!videoFileInput.files || videoFileInput.files.length === 0) {
-                event.preventDefault();
-                alert("ما كاينش فيديو مسجّل.");
-                return;
+        publishForm.addEventListener(
+            "submit",
+            function (event) {
+
+                if (!videoFileInput.files ||
+                    videoFileInput.files.length === 0) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "ما كاينش فيديو مسجّل."
+                    );
+
+                    return;
+                }
+
             }
+        );
 
-        });
     }
 
-    window.addEventListener("beforeunload", function () {
+    window.addEventListener(
+        "beforeunload",
+        function () {
 
-        stopStream();
+            stopStream();
 
-        if (countdownTimer) {
-            clearInterval(countdownTimer);
-            countdownTimer = null;
+            if (countdownTimer) {
+
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
         }
+    );
 
-    });
+    /*
+     * تشغيل الكاميرا مباشرة.
+     */
+    initializeCamera();
 
 })();
 
