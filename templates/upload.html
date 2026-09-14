@@ -1,53 +1,189 @@
 {% extends "base.html" %}
 
-{% block title %}
-رفع فيديو - JENBIR
-{% endblock %}
+{% block title %}إنشاء فيديو - JENBIR{% endblock %}
 
 {% block content %}
 
-<div class="formbox">
+<div class="create-video-page">
 
-    <h1>رفع فيديو</h1>
+    <h1>🎥 إنشاء فيديو</h1>
 
-    <form method="post" enctype="multipart/form-data">
+    <div class="camera-box">
 
-        <label>العنوان</label>
+        <video
+            id="camera"
+            autoplay
+            playsinline
+            muted>
+        </video>
+
+        <div id="countdown" class="countdown"></div>
+
+        <div class="camera-controls">
+            <button type="button" id="startCamera">
+                📷 فتح الكاميرا
+            </button>
+
+            <button
+                type="button"
+                id="recordButton"
+                disabled>
+                🔴 تسجيل 10 ثواني
+            </button>
+        </div>
+
+    </div>
+
+    <video
+        id="preview"
+        controls
+        playsinline
+        style="display:none;">
+    </video>
+
+    <form
+        id="publishForm"
+        method="POST"
+        enctype="multipart/form-data"
+        style="display:none;">
 
         <input
             type="text"
             name="title"
-            placeholder="عنوان الفيديو"
-            required>
-
-        <label>الوصف</label>
-
-        <textarea
-            name="description"
-            rows="5"
-            placeholder="وصف الفيديو"></textarea>
-
-        <label>الفيديو</label>
+            maxlength="50"
+            placeholder="شنو بغيتي تقول؟ (اختياري)">
 
         <input
             type="file"
             name="video"
-            accept="video/*"
-            required>
+            id="videoFile"
+            hidden>
 
-        <label>الصورة المصغرة</label>
-
-        <input
-            type="file"
-            name="thumbnail"
-            accept="image/*">
+        <select name="visibility">
+            <option value="public">🌍 Public</option>
+            <option value="followers">👥 Followers</option>
+        </select>
 
         <button type="submit">
-            رفع الفيديو
+            🚀 نشر الفيديو
         </button>
 
     </form>
 
 </div>
+
+<script>
+
+const camera = document.getElementById("camera");
+const preview = document.getElementById("preview");
+const startCamera = document.getElementById("startCamera");
+const recordButton = document.getElementById("recordButton");
+const countdown = document.getElementById("countdown");
+
+let stream = null;
+let recorder = null;
+let chunks = [];
+
+startCamera.addEventListener("click", async () => {
+
+    try {
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "user"
+            },
+            audio: true
+        });
+
+        camera.srcObject = stream;
+
+        recordButton.disabled = false;
+
+        startCamera.disabled = true;
+
+    } catch (error) {
+
+        alert("خاصك تسمح للكاميرا والميكروفون.");
+
+        console.error(error);
+    }
+
+});
+
+
+recordButton.addEventListener("click", () => {
+
+    chunks = [];
+
+    recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable = event => {
+
+        if (event.data.size > 0) {
+            chunks.push(event.data);
+        }
+
+    };
+
+    recorder.onstop = () => {
+
+        const blob = new Blob(
+            chunks,
+            { type: recorder.mimeType }
+        );
+
+        const file = new File(
+            [blob],
+            "jenbir-video.webm",
+            { type: blob.type }
+        );
+
+        const dataTransfer = new DataTransfer();
+
+        dataTransfer.items.add(file);
+
+        document.getElementById("videoFile").files =
+            dataTransfer.files;
+
+        preview.src = URL.createObjectURL(blob);
+
+        preview.style.display = "block";
+
+        document.getElementById("publishForm").style.display =
+            "block";
+
+    };
+
+    recorder.start();
+
+    recordButton.disabled = true;
+
+    let seconds = 10;
+
+    countdown.textContent = seconds;
+
+    const timer = setInterval(() => {
+
+        seconds--;
+
+        countdown.textContent = seconds;
+
+        if (seconds <= 0) {
+
+            clearInterval(timer);
+
+            countdown.textContent = "";
+
+            recorder.stop();
+
+            recordButton.disabled = false;
+
+        }
+
+    }, 1000);
+
+});
+
+</script>
 
 {% endblock %}
